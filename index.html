@@ -192,7 +192,7 @@ button{font:inherit;cursor:pointer}
 .medit .io button{flex:1;border:1px solid var(--line);background:#101016;color:var(--soft);border-radius:9px;padding:7px;font-family:var(--mono);font-size:11px}
 
 /* presenter notes */
-.notes{position:fixed;left:3vmin;right:3vmin;bottom:7vmin;background:#000000d9;border:1px solid var(--line);
+.notes{position:fixed;left:3vmin;right:3vmin;bottom:7vmin;max-height:72vh;overflow-y:auto;background:#000000d9;border:1px solid var(--line);
  border-radius:1.6vmin;padding:2.4vmin 3vmin;font-size:2.3vmin;line-height:1.55;color:#ffe9a8;display:none;z-index:6;backdrop-filter:blur(6px)}
 .notes.on{display:block}
 .notes b{font-family:var(--mono);font-size:1.6vmin;letter-spacing:.18em;color:var(--mid);display:block;margin-bottom:.8vmin}
@@ -220,12 +220,17 @@ button{font:inherit;cursor:pointer}
       <button data-k="upload" class="sel">📷 Upload photo</button>
       <button data-k="url">🔗 Image URL</button>
       <button data-k="yt">▶ YouTube link</button>
+      <button data-k="txt">📝 Text slide</button>
     </div></div>
   <div class="row" id="meUpRow"><label>CHOOSE AN IMAGE FILE (auto-resized, stored in this browser)</label>
     <input type="file" id="meFile" accept="image/*"></div>
   <div class="row" id="meUrlRow" style="display:none"><label>PASTE THE LINK</label>
     <input type="url" id="meUrl" placeholder="https://…"></div>
-  <div class="row"><label>CAPTION (what the room should notice)</label>
+  <div class="row" id="meTxtRow" style="display:none"><label>SLIDE TITLE</label>
+    <input type="text" id="meTitle" placeholder="e.g. What our own helpdesk data shows">
+    <label style="margin-top:6px">BODY — one point per line (start a line with "- " for a bullet)</label>
+    <textarea id="meBody" rows="6" style="background:#101016;border:1px solid var(--line);border-radius:9px;color:#fff;padding:9px 12px;font-size:14px;font-family:var(--body)"></textarea></div>
+  <div class="row" id="meCapRow"><label>CAPTION (what the room should notice)</label>
     <input type="text" id="meCap" placeholder="e.g. DDR4 (top) vs DDR5 — note the moved notch"></div>
   <div class="actions"><button class="go" id="meAdd">Add to session</button><button id="meClose">Close</button></div>
   <ul id="meList"></ul>
@@ -262,12 +267,23 @@ function buildDeck(){
     DECK.push({...base,type:'q'});
     s.ex.forEach((e,i)=>DECK.push({...base,type:'ex',i}));
     s.vis.forEach((v,vi)=>DECK.push({...base,type:'vis',vi}));
-    (MEDIA[si]||[]).forEach((m,mi)=>DECK.push({...base,type:m.kind==='yt'?'uvid':'uimg',mi}));
     DECK.push({...base,type:'cmp'});
     if(s.vid)DECK.push({...base,type:'vid'});
     if(s.demo)DECK.push({...base,type:'demo'});
     DECK.push({...base,type:'wow'});
     DECK.push({...base,type:'go'});
+  });
+  // weave user media at their anchors: after the (anchor)th slide of that session
+  Object.keys(MEDIA).forEach(si=>{
+    const items=(MEDIA[si]||[]).map((m,mi)=>({m,mi}));
+    // insert in reverse anchor order so indices stay valid
+    items.sort((a,b)=>(b.m.at??999)-(a.m.at??999));
+    items.forEach(({m,mi})=>{
+      const sess=DECK.map((d,i)=>({d,i})).filter(x=>x.d.s===+si&&!x.d.user);
+      const at=Math.min(m.at??sess.length-1,sess.length-1);
+      const pos=sess[at].i+1+DECK.slice(0,sess[at].i+1).filter(x=>x.user&&x.s===+si&&((MEDIA[si][x.mi].at??999)<= (m.at??999))).length*0;
+      DECK.splice(sess[at].i+1,0,{s:+si,n:SESSIONS[si].n,notes:SESSIONS[si].notes,user:true,type:m.kind==='yt'?'uvid':m.kind==='txt'?'utxt':'uimg',mi});
+    });
   });
 }
 
@@ -275,8 +291,16 @@ function buildDeck(){
 const medit=document.getElementById('medit'),editFab=document.getElementById('editFab');
 let meKind='upload';
 editFab.onclick=()=>{openEditor();};
+let meAnchor=0;
+function sessionBaseIndex(){ // index of current slide among this session's base slides
+  const d=DECK[cur];const sess=DECK.map((x,i)=>({x,i})).filter(y=>y.x.s===d.s&&!y.x.user);
+  if(d.user){ // inserting after a user slide: anchor to the nearest previous base slide
+    for(let i=cur;i>=0;i--){if(DECK[i].s===d.s&&!DECK[i].user)return sess.findIndex(y=>y.i===i);} }
+  return sess.findIndex(y=>y.i===cur);
+}
 function openEditor(){
-  document.getElementById('meSes').textContent='SESSION '+(DECK[cur].n)+' · '+SESSIONS[DECK[cur].s].title.toUpperCase();
+  meAnchor=Math.max(0,sessionBaseIndex());
+  document.getElementById('meSes').textContent='SESSION '+(DECK[cur].n)+' — new slide will appear RIGHT AFTER the slide you are viewing';
   drawMeList();medit.classList.add('on');
 }
 document.getElementById('meClose').onclick=()=>medit.classList.remove('on');
@@ -284,12 +308,14 @@ document.querySelectorAll('.medit .kinds button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.medit .kinds button').forEach(x=>x.classList.remove('sel'));
   b.classList.add('sel');meKind=b.dataset.k;
   document.getElementById('meUpRow').style.display=meKind==='upload'?'':'none';
-  document.getElementById('meUrlRow').style.display=meKind!=='upload'?'':'none';
+  document.getElementById('meUrlRow').style.display=(meKind==='url'||meKind==='yt')?'':'none';
+  document.getElementById('meTxtRow').style.display=meKind==='txt'?'':'none';
+  document.getElementById('meCapRow').style.display=meKind==='txt'?'none':'';
 });
 function drawMeList(){
   const si=DECK[cur].s,list=MEDIA[si]||[];
   document.getElementById('meList').innerHTML=list.map((m,i)=>
-   `<li>${m.kind==='yt'?'▶':'📷'} ${(m.cap||m.id||'image').slice(0,46)}<button onclick="rmMedia(${si},${i})">✕ remove</button></li>`).join('')||'<li style="color:#666">no media added to this session yet</li>';
+   `<li>${m.kind==='yt'?'▶':m.kind==='txt'?'📝':'📷'} [after slide ${(m.at??0)+1}] ${(m.cap||m.title||m.id||'image').slice(0,40)}<button onclick="rmMedia(${si},${i})">✕ remove</button></li>`).join('')||'<li style="color:#666">no media added to this session yet</li>';
 }
 function rmMedia(si,i){MEDIA[si].splice(i,1);if(!MEDIA[si].length)delete MEDIA[si];store.set('media',MEDIA);buildDeck();drawMeList();render();}
 function shrinkImage(file,cb){
@@ -302,14 +328,17 @@ function shrinkImage(file,cb){
 }
 document.getElementById('meAdd').onclick=()=>{
   const si=DECK[cur].s,cap=document.getElementById('meCap').value.trim();
-  const push=item=>{(MEDIA[si]=MEDIA[si]||[]).push(item);store.set('media',MEDIA);
-    document.getElementById('meCap').value='';buildDeck();drawMeList();toastMsg('Added — a new slide now lives in this session');};
+  const push=item=>{item.at=meAnchor;(MEDIA[si]=MEDIA[si]||[]).push(item);store.set('media',MEDIA);
+    document.getElementById('meCap').value='';buildDeck();drawMeList();toastMsg('Added right after this slide');};
   if(meKind==='upload'){const f=document.getElementById('meFile').files[0];
     if(!f){toastMsg('Choose an image file first');return}
     shrinkImage(f,data=>push({kind:'img',src:data,cap}));}
   else if(meKind==='url'){const u=document.getElementById('meUrl').value.trim();
     if(!/^https?:\/\//.test(u)){toastMsg('Paste a full https:// image link');return}
     push({kind:'img',src:u,cap});document.getElementById('meUrl').value='';}
+  else if(meKind==='txt'){const t=document.getElementById('meTitle').value.trim(),b=document.getElementById('meBody').value;
+    if(!t&&!b.trim()){toastMsg('Give the text slide a title or body');return}
+    push({kind:'txt',title:t,body:b});document.getElementById('meTitle').value='';document.getElementById('meBody').value='';}
   else{const u=document.getElementById('meUrl').value.trim(),m=u.match(/(?:youtu\.be\/|v=|\/embed\/|shorts\/)([\w-]{11})/)||u.match(/^([\w-]{11})$/);
     if(!m){toastMsg('That does not look like a YouTube link');return}
     push({kind:'yt',id:m[1],cap});document.getElementById('meUrl').value='';}
@@ -364,6 +393,13 @@ function render(){
   if(d.type==='uimg'){const m=MEDIA[d.s][d.mi];html=`<div class="slide on s-img">
     <img src="${m.src}" alt="${esc(m.cap||'session photo')}">
     <div class="cap"><b>REAL HARDWARE</b>${esc(m.cap||'')}</div></div>`;}
+  if(d.type==='utxt'){const m=MEDIA[d.s][d.mi];
+    const lines=String(m.body||'').split('\n').filter(x=>x.trim());
+    html=`<div class="slide on s-ex"><div class="eyebrow">Session ${s.n} · added by your trainer</div>
+    <h1>${esc(m.title||'')}</h1>
+    ${lines.length?(lines.every(l=>l.trim().startsWith('- '))?
+      `<ul>${lines.map(l=>`<li>${esc(l.trim().slice(2))}</li>`).join('')}</ul>`:
+      lines.map(l=>l.trim().startsWith('- ')?`<ul style="margin:.6vmin 0"><li>${esc(l.trim().slice(2))}</li></ul>`:`<p style="font-size:3vmin;line-height:1.5;margin:1.4vmin 0">${esc(l)}</p>`).join('')):''}</div>`;}
   if(d.type==='uvid'){const m=MEDIA[d.s][d.mi];html=`<div class="slide on s-vid">
     <h1><span>ADDED VIDEO</span>${esc(m.cap||'Watch')}</h1>
     <div class="frame" id="vidFrame"><div class="offline"><button class="osiBtn" style="display:inline;margin:0" onclick="playVid('${m.id}')">▶ Load the video</button></div></div></div>`;}
@@ -376,7 +412,10 @@ function render(){
   document.getElementById('phch').textContent='PHASE '+phaseOf(s.n);
   document.getElementById('pos').textContent=`S${String(s.n).padStart(2,'0')} · ${idxInSession}/${slidesInSession}`;
   document.getElementById('fill').style.width=((cur+1)/DECK.length*100)+'%';
-  const nt=document.getElementById('ntext');nt.textContent=d.notes||'';
+  const nt=document.getElementById('ntext');
+  nt.innerHTML='<div style="margin-bottom:1.4vmin">'+esc(d.notes||'')+'</div>'+
+   (s.deep&&s.deep.length?'<div style="font-family:var(--mono);font-size:1.5vmin;letter-spacing:.18em;color:var(--mid);margin:1vmin 0 .8vmin">DEEP BACKGROUND — the lookup work, pre-done</div>'+
+    s.deep.map(x=>'<div style="margin:.7vmin 0;padding-left:1.6vmin;border-left:2px solid #4a3a50;color:#e8dcc0;font-size:2vmin">'+esc(x)+'</div>').join(''):'');
 }
 function next(){
   const d=DECK[cur];
