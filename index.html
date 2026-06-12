@@ -191,6 +191,10 @@ button{font:inherit;cursor:pointer}
 .medit .io{display:flex;gap:8px;margin-top:10px}
 .medit .io button{flex:1;border:1px solid var(--line);background:#101016;color:var(--soft);border-radius:9px;padding:7px;font-family:var(--mono);font-size:11px}
 
+
+.toast{position:fixed;bottom:8vmin;left:50%;transform:translateX(-50%);background:#15151af0;border:1px solid var(--line);color:#fff;font-family:var(--mono);font-size:1.9vmin;padding:1.2vmin 2.6vmin;border-radius:99px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:60}
+.toast.show{opacity:1}
+
 /* presenter notes */
 .notes{position:fixed;left:3vmin;right:3vmin;bottom:7vmin;max-height:72vh;overflow-y:auto;background:#000000d9;border:1px solid var(--line);
  border-radius:1.6vmin;padding:2.4vmin 3vmin;font-size:2.3vmin;line-height:1.55;color:#ffe9a8;display:none;z-index:6;backdrop-filter:blur(6px)}
@@ -211,7 +215,7 @@ button{font:inherit;cursor:pointer}
 </head>
 <body>
 <div class="stage" id="stage"></div>
-<div class="notes" id="notes"><b>PRESENTER NOTES — only you can see this (N to hide)</b><span id="ntext"></span></div>
+<div class="notes" id="notes"><b style="display:none"></b><span id="ntext"></span></div>
 <button class="editFab" id="editFab">✎ ADD MEDIA TO THIS SESSION</button>
 <div class="medit" id="medit"><div class="panel">
   <h2>Add media</h2><div class="ses" id="meSes"></div>
@@ -244,8 +248,8 @@ button{font:inherit;cursor:pointer}
  <span class="phasechip" id="phch">PHASE 1</span>
  <span id="pos">S01 · 1/8</span>
  <div class="bar"><div class="fill" id="fill"></div></div>
- <span class="kbd">→ next · ← back · G sessions · N notes · F fullscreen · ✎ add media</span>
- <span class="phasechip" style="opacity:.55">BUILD v6</span>
+ <span class="kbd">→ next · ← back · G sessions · N details · I instructor · F fullscreen · ✎ add media</span>
+ <span class="phasechip" style="opacity:.55">BUILD v7</span>
 </div>
 <script src="slides-data.js"></script>
 <script src="diagrams.js"></script>
@@ -352,7 +356,7 @@ document.getElementById('meImp').onchange=e=>{
   r.readAsText(f);};
 
 buildDeck();
-let cur=0,reveal=0;
+let cur=0,reveal=0,noteMode='deep';
 const stage=document.getElementById('stage');
 
 function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
@@ -410,9 +414,13 @@ function render(){
   document.getElementById('pos').textContent=`S${String(s.n).padStart(2,'0')} · ${idxInSession}/${slidesInSession}`;
   document.getElementById('fill').style.width=((cur+1)/DECK.length*100)+'%';
   const nt=document.getElementById('ntext');
-  nt.innerHTML='<div style="margin-bottom:1.4vmin">'+esc(d.notes||'')+'</div>'+
-   (s.deep&&s.deep.length?'<div style="font-family:var(--mono);font-size:1.5vmin;letter-spacing:.18em;color:var(--mid);margin:1vmin 0 .8vmin">DEEP BACKGROUND — the lookup work, pre-done</div>'+
-    s.deep.map(x=>'<div style="margin:.7vmin 0;padding-left:1.6vmin;border-left:2px solid #4a3a50;color:#e8dcc0;font-size:2vmin">'+esc(x)+'</div>').join(''):'');
+  if(noteMode==='coach'){
+    nt.innerHTML='<div style="font-family:var(--mono);font-size:1.5vmin;letter-spacing:.18em;color:var(--mid);margin-bottom:.8vmin">INSTRUCTOR — HOW TO PLAY THIS SESSION (I to hide)</div>'+
+      '<div>'+esc(s.notes||'')+'</div>';
+  }else{
+    nt.innerHTML='<div style="font-family:var(--mono);font-size:1.5vmin;letter-spacing:.18em;color:var(--mid);margin-bottom:.8vmin">DEEP BACKGROUND — DETAILS &amp; SOURCES (N to hide)</div>'+
+      (s.deep&&s.deep.length?s.deep.map(x=>'<div style="margin:.7vmin 0;padding-left:1.6vmin;border-left:2px solid #4a3a50;color:#e8dcc0;font-size:2vmin">'+esc(x)+'</div>').join(''):'<div style="color:#888">No deep notes for this slide.</div>');
+  }
 }
 function next(){
   const d=DECK[cur];
@@ -552,7 +560,12 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='ArrowLeft'||e.key==='PageUp')prev();
   else if(e.key==='g'||e.key==='G')grid.classList.toggle('on');
   else if(e.key==='Escape')grid.classList.remove('on');
-  else if(e.key==='n'||e.key==='N')document.getElementById('notes').classList.toggle('on');
+  else if(e.key==='n'||e.key==='N'){const nb=document.getElementById('notes');
+    if(nb.classList.contains('on')&&noteMode==='deep')nb.classList.remove('on');
+    else{noteMode='deep';nb.classList.add('on');render();}}
+  else if(e.key==='i'||e.key==='I'){const nb=document.getElementById('notes');
+    if(nb.classList.contains('on')&&noteMode==='coach')nb.classList.remove('on');
+    else{noteMode='coach';nb.classList.add('on');render();}}
   else if(e.key==='f'||e.key==='F')document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();
 });
 document.addEventListener('click',e=>{
