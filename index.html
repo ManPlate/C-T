@@ -195,6 +195,11 @@ button{font:inherit;cursor:pointer}
 .toast{position:fixed;bottom:8vmin;left:50%;transform:translateX(-50%);background:#15151af0;border:1px solid var(--line);color:#fff;font-family:var(--mono);font-size:1.9vmin;padding:1.2vmin 2.6vmin;border-radius:99px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:60}
 .toast.show{opacity:1}
 
+
+.ustrip{display:flex;gap:1.2vmin;justify-content:center;margin-top:2vmin}
+.ustrip button{border:1px dashed var(--mid);background:#1a1018cc;color:#f0c8da;border-radius:99px;padding:.8vmin 2vmin;font-family:var(--mono);font-size:1.6vmin}
+.ustrip button:hover{background:var(--grad);color:#fff;border-style:solid}
+
 /* presenter notes */
 .notes{position:fixed;left:3vmin;right:3vmin;bottom:7vmin;max-height:72vh;overflow-y:auto;background:#000000d9;border:1px solid var(--line);
  border-radius:1.6vmin;padding:2.4vmin 3vmin;font-size:2.3vmin;line-height:1.55;color:#ffe9a8;display:none;z-index:6;backdrop-filter:blur(6px)}
@@ -250,7 +255,7 @@ button{font:inherit;cursor:pointer}
  <span id="pos">S01 · 1/8</span>
  <div class="bar"><div class="fill" id="fill"></div></div>
  <span class="kbd">→ next · ← back · G sessions · N details · I instructor · F fullscreen · ✎ add media</span>
- <span class="phasechip" style="opacity:.55">BUILD v9</span>
+ <span class="phasechip" style="opacity:.55">BUILD v10</span>
 </div>
 <script src="slides-data.js"></script>
 <script src="diagrams.js"></script>
@@ -319,7 +324,35 @@ function drawMeList(){
   document.getElementById('meList').innerHTML=list.map((m,i)=>
    `<li>${['yt','vimeo','file','embed'].includes(m.kind)?'▶':m.kind==='txt'?'📝':'📷'} [after slide ${(m.at??0)+1}] ${(m.cap||m.title||m.id||'image').slice(0,40)}<button onclick="rmMedia(${si},${i})">✕ remove</button></li>`).join('')||'<li style="color:#666">no media added to this session yet</li>';
 }
-function rmMedia(si,i){MEDIA[si].splice(i,1);if(!MEDIA[si].length)delete MEDIA[si];store.set('media',MEDIA);buildDeck();drawMeList();render();}
+function baseCount(si){return DECK.filter(d=>d.s===si&&!d.user).length;}
+function moveMedia(si,mi,dir){
+  const arr=MEDIA[si],item=arr[mi],maxAt=baseCount(si)-1,cat=item.at??maxAt;
+  const group=arr.map((m,i)=>({m,i})).filter(x=>(x.m.at??maxAt)===cat);
+  const gi=group.findIndex(x=>x.i===mi);
+  if(dir>0){
+    if(gi<group.length-1){const j=group[gi+1].i;[arr[mi],arr[j]]=[arr[j],arr[mi]];}
+    else{const na=Math.min(cat+1,maxAt);
+      if(na===cat){toastMsg('Already at the end of the session');return}
+      item.at=na;arr.splice(mi,1);
+      const f=arr.findIndex(m=>(m.at??maxAt)===na);
+      arr.splice(f===-1?arr.length:f,0,item);}
+  }else{
+    if(gi>0){const j=group[gi-1].i;[arr[mi],arr[j]]=[arr[j],arr[mi]];}
+    else{const na=cat-1;
+      if(na<0){toastMsg('Already right after the title slide');return}
+      item.at=na;arr.splice(mi,1);
+      let last=-1;arr.forEach((m,i)=>{if((m.at??maxAt)===na)last=i;});
+      arr.splice(last+1,0,item);}
+  }
+  store.set('media',MEDIA);buildDeck();
+  const ni=DECK.findIndex(d=>d.user&&d.s===si&&MEDIA[si][d.mi]===item);
+  if(ni>=0)cur=ni;render();toastMsg('Moved — it now sits one slide '+(dir>0?'later':'earlier'));
+}
+function ustrip(si,mi){return `<div class="ustrip">
+  <button onclick="moveMedia(${si},${mi},-1)">◀ move earlier</button>
+  <button onclick="moveMedia(${si},${mi},1)">move later ▶</button>
+  <button onclick="rmMedia(${si},${mi})">✕ remove</button></div>`;}
+function rmMedia(si,i){MEDIA[si].splice(i,1);if(!MEDIA[si].length)delete MEDIA[si];store.set('media',MEDIA);buildDeck();drawMeList();cur=Math.min(cur,DECK.length-1);render();}
 function shrinkImage(file,cb){
   const img=new Image();img.onload=()=>{
     const MAX=1600,sc=Math.min(1,MAX/Math.max(img.width,img.height));
@@ -402,17 +435,17 @@ function render(){
   if(d.type==='vis')html=`<div class="slide on s-vis">${DIAGRAMS[s.vis[d.vi]]()}</div>`;
   if(d.type==='uimg'){const m=MEDIA[d.s][d.mi];html=`<div class="slide on s-img">
     <img src="${m.src}" alt="${esc(m.cap||'session photo')}">
-    ${m.cap?`<div class="cap">${esc(m.cap)}</div>`:''}</div>`;}
+    ${m.cap?`<div class="cap">${esc(m.cap)}</div>`:''}${ustrip(d.s,d.mi)}</div>`;}
   if(d.type==='utxt'){const m=MEDIA[d.s][d.mi];
     const lines=String(m.body||'').split('\n').filter(x=>x.trim());
     html=`<div class="slide on s-ex"><div class="eyebrow">Session ${s.n} · added by your trainer</div>
     <h1>${esc(m.title||'')}</h1>
     ${lines.length?(lines.every(l=>l.trim().startsWith('- '))?
       `<ul>${lines.map(l=>`<li>${esc(l.trim().slice(2))}</li>`).join('')}</ul>`:
-      lines.map(l=>l.trim().startsWith('- ')?`<ul style="margin:.6vmin 0"><li>${esc(l.trim().slice(2))}</li></ul>`:`<p style="font-size:3vmin;line-height:1.5;margin:1.4vmin 0">${esc(l)}</p>`).join('')):''}</div>`;}
+      lines.map(l=>l.trim().startsWith('- ')?`<ul style="margin:.6vmin 0"><li>${esc(l.trim().slice(2))}</li></ul>`:`<p style="font-size:3vmin;line-height:1.5;margin:1.4vmin 0">${esc(l)}</p>`).join('')):''}${ustrip(d.s,d.mi)}</div>`;}
   if(d.type==='uvid'){const m=MEDIA[d.s][d.mi];html=`<div class="slide on s-vid">
     <h1><span>ADDED VIDEO</span>${esc(m.cap||'Watch')}</h1>
-    <div class="frame" id="vidFrame"><div class="offline"><button class="osiBtn" style="display:inline;margin:0" onclick="loadUserVid(${d.s},${d.mi})">▶ Load the video</button></div></div></div>`;}
+    <div class="frame" id="vidFrame"><div class="offline"><button class="osiBtn" style="display:inline;margin:0" onclick="loadUserVid(${d.s},${d.mi})">▶ Load the video</button></div></div>${ustrip(d.s,d.mi)}</div>`;}
   if(d.type==='vid')html=`<div class="slide on s-vid">
     <h1><span>SHORT VIDEO · ~5 MIN</span>Watch: the animation version</h1>
     <div class="frame" id="vidFrame"><div class="offline">Press → … or <button class="osiBtn" style="display:inline;margin:0 1vmin" onclick="playVid('${s.vid}')">▶ Load the video</button> (needs internet)</div></div></div>`;
