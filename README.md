@@ -54,10 +54,10 @@ Click **✎ ADD MEDIA TO THIS SESSION** on any slide:
 - **📝 Text slide** — title + lines (`- ` prefix makes bullets) for your
   own data, policies or announcements.
 
-The new slide appears immediately after the slide you were viewing. Every added slide carries its own controls: **◀ move earlier · move later ▶ · ✕ remove** — reposition without deleting and re-adding.
+The new slide appears immediately after the slide you were viewing. Every added slide carries its own controls: **◀ move earlier · move later ▶ · ✕ remove** — reposition without deleting and re-adding. The controls stay invisible while presenting — press **E** to show them (edit mode), or hover over an added slide.
 Media lives per-browser: use **Export/Import media pack** (in the
 editor) to move your curated set between machines or share with
-co-trainers. The footer shows the build number (currently **v10**) — if
+co-trainers. The footer shows the build number (currently **v11**) — if
 behavior seems off, confirm you're running the latest files.
 
 ## Editing the course content

@@ -196,7 +196,9 @@ button{font:inherit;cursor:pointer}
 .toast.show{opacity:1}
 
 
-.ustrip{display:flex;gap:1.2vmin;justify-content:center;margin-top:2vmin}
+.ustrip{display:flex;gap:1.2vmin;justify-content:center;margin-top:2vmin;opacity:0;transition:opacity .25s}
+.slide:hover .ustrip{opacity:.18}
+.ustrip:hover,body.edit .ustrip{opacity:1}
 .ustrip button{border:1px dashed var(--mid);background:#1a1018cc;color:#f0c8da;border-radius:99px;padding:.8vmin 2vmin;font-family:var(--mono);font-size:1.6vmin}
 .ustrip button:hover{background:var(--grad);color:#fff;border-style:solid}
 
@@ -254,8 +256,8 @@ button{font:inherit;cursor:pointer}
  <span class="phasechip" id="phch">PHASE 1</span>
  <span id="pos">S01 · 1/8</span>
  <div class="bar"><div class="fill" id="fill"></div></div>
- <span class="kbd">→ next · ← back · G sessions · N details · I instructor · F fullscreen · ✎ add media</span>
- <span class="phasechip" style="opacity:.55">BUILD v10</span>
+ <span class="kbd">→ next · ← back · G sessions · N details · I instructor · E edit · F fullscreen · ✎ add media</span>
+ <span class="phasechip" style="opacity:.55">BUILD v11</span>
 </div>
 <script src="slides-data.js"></script>
 <script src="diagrams.js"></script>
@@ -616,6 +618,7 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='i'||e.key==='I'){const nb=document.getElementById('notes');
     if(nb.classList.contains('on')&&noteMode==='coach')nb.classList.remove('on');
     else{noteMode='coach';nb.classList.add('on');render();}}
+  else if(e.key==='e'||e.key==='E'){document.body.classList.toggle('edit');toastMsg(document.body.classList.contains('edit')?'Edit mode on — move controls visible':'Edit mode off');}
   else if(e.key==='f'||e.key==='F')document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();
 });
 document.addEventListener('click',e=>{
