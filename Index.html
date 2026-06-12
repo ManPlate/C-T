@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Support-to-Tech — Classroom Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#15151a;--paper:#fafafb;--soft:#9a9aa4;--line:#2c2c34;
+ --crimson:#e0223f;--violet:#7b46b4;--mid:#c2417d;--ok:#2fbf7f;
+ --grad:linear-gradient(110deg,#c8102e,#b0356b 55%,#5b2d8e);
+ --mono:'IBM Plex Mono',ui-monospace,monospace;--disp:'Space Grotesk',system-ui,sans-serif;
+ --body:system-ui,-apple-system,'Segoe UI',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--body);background:var(--ink);color:#f2f2f5;overflow:hidden}
+button{font:inherit;cursor:pointer}
+.stage{position:fixed;inset:0;display:grid;place-items:center;padding:4vmin}
+.slide{width:min(170vh,96vw);max-height:92vh;display:none;animation:in .35s ease}
+.slide.on{display:block}
+@keyframes in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.slide{animation:none}}
+
+/* footer chrome */
+.chrome{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;gap:16px;
+ padding:10px 22px;font-family:var(--mono);font-size:1.5vmin;color:var(--soft);z-index:5}
+.chrome .bar{flex:1;height:3px;background:#26262e;border-radius:99px;overflow:hidden}
+.chrome .fill{height:100%;background:var(--grad);width:0;transition:width .3s}
+.kbd{opacity:.65}
+.phasechip{border:1px solid var(--line);border-radius:99px;padding:2px 12px}
+
+/* ---------- slide types ---------- */
+.eyebrow{font-family:var(--mono);font-size:1.9vmin;letter-spacing:.22em;color:var(--mid);text-transform:uppercase;margin-bottom:2.4vmin}
+.eyebrow b{color:#fff}
+
+/* session title */
+.s-title{ text-align:left}
+.s-title .num{font-family:var(--disp);font-weight:700;font-size:22vmin;line-height:.85;
+ background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.s-title h1{font-family:var(--disp);font-weight:700;font-size:7.5vmin;letter-spacing:-.02em;margin-top:1.5vmin}
+.s-title .sub{font-family:var(--mono);font-size:2vmin;color:var(--soft);margin-top:2vmin}
+
+/* hook (story reveal) */
+.s-hook .line{font-family:var(--disp);font-weight:500;font-size:4.6vmin;line-height:1.35;
+ margin:2.2vmin 0;opacity:0;transform:translateY(10px);transition:all .4s ease;color:#e9e9ee}
+.s-hook .line.show{opacity:1;transform:none}
+.s-hook .line:last-child.show{color:#fff;font-weight:700}
+.s-hook .line::before{content:"— ";color:var(--crimson)}
+
+/* question */
+.s-q h1{font-family:var(--disp);font-weight:700;font-size:6.2vmin;line-height:1.25;letter-spacing:-.01em;max-width:32ch}
+.s-q .mark{font-size:14vmin;line-height:1;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:var(--disp);font-weight:700}
+
+/* explainer */
+.s-ex{background:var(--paper);color:var(--ink);border-radius:2.4vmin;padding:5vmin 6vmin;box-shadow:0 30px 80px #00000066}
+.s-ex .eyebrow{color:#9b3a6e}
+.s-ex h1{font-family:var(--disp);font-weight:700;font-size:5.6vmin;letter-spacing:-.02em;margin-bottom:3.4vmin}
+.s-ex li{list-style:none;font-size:3.2vmin;line-height:1.45;padding:1.4vmin 0 1.4vmin 4.4vmin;position:relative;border-top:1px solid #ebebf0}
+.s-ex li:first-child{border-top:0}
+.s-ex li::before{content:"";position:absolute;left:.6vmin;top:2.5vmin;width:2vmin;height:2vmin;border-radius:.6vmin;background:var(--grad)}
+.s-ex li b{font-family:var(--mono);font-weight:600}
+
+/* comparison */
+.s-cmp h1{font-family:var(--disp);font-weight:700;font-size:4.6vmin;margin-bottom:3.4vmin;text-align:center}
+.s-cmp .cols{display:grid;grid-template-columns:1fr auto 1fr;gap:3vmin;align-items:stretch}
+.s-cmp .card{background:#fff;color:var(--ink);border-radius:2vmin;padding:5vmin 4vmin;text-align:center;display:grid;align-content:center;gap:1.6vmin;box-shadow:0 24px 60px #00000055}
+.s-cmp .card.b{background:#211726;color:#fff;border:1px solid #4a2f5e}
+.s-cmp .big{font-family:var(--disp);font-weight:700;font-size:6.4vmin;letter-spacing:-.02em}
+.s-cmp .card.b .big{background:linear-gradient(110deg,#ff5470,#b07cf0);-webkit-background-clip:text;background-clip:text;color:transparent}
+.s-cmp .sub{font-size:2.4vmin;color:#6c6c76}.s-cmp .card.b .sub{color:#b9a9c9}
+.s-cmp .vs{align-self:center;font-family:var(--mono);font-size:2.6vmin;color:var(--soft)}
+
+/* wow */
+.s-wow{text-align:center}
+.s-wow .big{font-family:var(--disp);font-weight:700;font-size:17vmin;line-height:1;letter-spacing:-.03em;
+ background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.s-wow .small{font-size:3.4vmin;color:#d8d8de;max-width:36ch;margin:3vmin auto 0;line-height:1.5}
+
+/* handoff */
+.s-go{background:var(--paper);color:var(--ink);border-radius:2.4vmin;padding:6vmin;box-shadow:0 30px 80px #00000066}
+.s-go h1{font-family:var(--disp);font-weight:700;font-size:5vmin;margin-bottom:2vmin}
+.s-go p{font-size:3.4vmin;line-height:1.5;max-width:46ch}
+.s-go .next{margin-top:4vmin;font-family:var(--mono);font-size:2vmin;color:#9b3a6e}
+
+/* demo shell */
+.s-demo{background:#101016;border:1px solid var(--line);border-radius:2.4vmin;padding:4.5vmin;box-shadow:0 30px 80px #00000066}
+.s-demo h1{font-family:var(--disp);font-size:4.2vmin;margin-bottom:3vmin}
+.s-demo h1 span{color:var(--mid);font-family:var(--mono);font-size:2vmin;letter-spacing:.15em;display:block;margin-bottom:1vmin}
+
+/* binary demo */
+.bits{display:flex;gap:1.6vmin;justify-content:center;margin:2vmin 0 3vmin}
+.bit{width:9vmin;height:11vmin;border-radius:1.4vmin;border:1px solid var(--line);background:#191920;
+ display:grid;place-items:center;font-family:var(--mono);font-size:5vmin;color:#5a5a66;position:relative}
+.bit.on{background:var(--grad);color:#fff;border-color:transparent}
+.bit small{position:absolute;bottom:-3.2vmin;font-size:1.7vmin;color:var(--soft)}
+.binout{display:flex;justify-content:center;gap:6vmin;font-family:var(--mono);font-size:3vmin}
+.binout b{font-size:5vmin;color:#fff;display:block;font-family:var(--disp)}
+
+/* password demo */
+.pwrow{display:flex;gap:2vmin;justify-content:center;align-items:center;margin-bottom:3vmin}
+.pwrow input{font-family:var(--mono);font-size:3vmin;padding:1.6vmin 2.4vmin;border-radius:1.2vmin;border:1px solid var(--line);background:#191920;color:#fff;width:46vmin}
+.pwout{text-align:center}
+.pwout .t{font-family:var(--disp);font-weight:700;font-size:7vmin;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.pwout .d{font-family:var(--mono);font-size:2vmin;color:var(--soft);margin-top:1vmin}
+
+/* ports demo */
+.portgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:2vmin}
+.portgrid button{background:#191920;border:1px solid var(--line);border-radius:1.4vmin;color:#fff;
+ font-family:var(--mono);font-size:3.4vmin;padding:3.5vmin 1vmin}
+.portgrid button.hit{background:var(--grad);border-color:transparent}
+.portgrid button.miss{border-color:var(--crimson);color:var(--crimson)}
+.portQ{text-align:center;font-family:var(--disp);font-size:4.6vmin;font-weight:700;margin-bottom:3vmin}
+.portScore{font-family:var(--mono);color:var(--soft);text-align:center;margin-top:2.4vmin;font-size:2.2vmin}
+
+/* OSI demo */
+.osi{display:grid;gap:1.2vmin;max-width:80vmin;margin:0 auto}
+.osi .layer{display:flex;align-items:center;gap:2.4vmin;background:#191920;border:1px solid var(--line);
+ border-radius:1.2vmin;padding:1.6vmin 2.4vmin;font-size:2.6vmin;transition:all .25s}
+.osi .layer.active{background:var(--grad);border-color:transparent;transform:scale(1.03)}
+.osi .layer b{font-family:var(--mono);width:6ch;color:var(--mid)}.osi .layer.active b{color:#fff}
+.osi .pkt{font-family:var(--mono);margin-left:auto;font-size:2vmin;color:#ffd}
+.osiBtn{display:block;margin:3vmin auto 0;background:var(--grad);border:0;color:#fff;border-radius:99px;
+ padding:1.6vmin 4vmin;font-family:var(--disp);font-weight:700;font-size:2.4vmin}
+
+/* subnet demo */
+.snrow{display:flex;gap:2vmin;justify-content:center;margin-bottom:3vmin;flex-wrap:wrap}
+.snrow input{font-family:var(--mono);font-size:3vmin;padding:1.4vmin 2vmin;border-radius:1.2vmin;border:1px solid var(--line);background:#191920;color:#fff;width:34vmin}
+.snrow select{font-family:var(--mono);font-size:3vmin;padding:1.4vmin;border-radius:1.2vmin;background:#191920;color:#fff;border:1px solid var(--line)}
+.snout{display:grid;grid-template-columns:repeat(2,1fr);gap:2vmin;max-width:90vmin;margin:0 auto}
+.snout div{background:#191920;border:1px solid var(--line);border-radius:1.4vmin;padding:2.4vmin;text-align:center}
+.snout b{font-family:var(--disp);font-size:3.6vmin;display:block;color:#fff}
+.snout span{font-family:var(--mono);font-size:1.8vmin;color:var(--soft)}
+
+
+/* facts small-print */
+.facts{margin-top:3.6vmin;border-top:1px solid #34343e;padding-top:2vmin;display:grid;grid-template-columns:repeat(3,1fr);gap:2vmin;opacity:0;transition:opacity .45s}
+.facts.show{opacity:1}
+.facts div{font-size:1.85vmin;line-height:1.45;color:#b9b9c4}
+.facts div::before{content:"FACT";display:block;font-family:var(--mono);font-size:1.3vmin;letter-spacing:.2em;color:var(--mid);margin-bottom:.5vmin}
+/* diagram slide */
+.s-vis{background:#101016;border:1px solid var(--line);border-radius:2.4vmin;padding:2.4vmin;box-shadow:0 30px 80px #00000066}
+.s-vis svg{width:100%;height:auto;max-height:82vh;display:block;border-radius:1.4vmin}
+/* video slide */
+.s-vid h1{font-family:var(--disp);font-size:3.6vmin;margin-bottom:2.4vmin}
+.s-vid h1 span{color:var(--mid);font-family:var(--mono);font-size:1.9vmin;letter-spacing:.15em;display:block;margin-bottom:1vmin}
+.s-vid .frame{border-radius:1.8vmin;overflow:hidden;border:1px solid var(--line);background:#000}
+.s-vid iframe{display:block;width:100%;aspect-ratio:16/9;border:0}
+.s-vid .offline{padding:5vmin;color:#ddd;font-size:2.4vmin;line-height:1.6}
+/* extra sims */
+.lz{display:flex;gap:1.6vmin;justify-content:center;margin:2vmin 0 3vmin;flex-wrap:wrap}
+.lz .st{width:16vmin;padding:2.2vmin 1vmin;border-radius:1.4vmin;border:1px solid var(--line);background:#191920;text-align:center;font-size:1.9vmin;color:#9a9aa4;transition:all .25s}
+.lz .st.active{background:var(--grad);color:#fff;border-color:transparent;transform:scale(1.05)}
+.lz .st b{display:block;font-family:var(--mono);font-size:2.6vmin;margin-bottom:.6vmin}
+.simNote{text-align:center;font-size:2.4vmin;color:#d8d8de;min-height:6vmin;max-width:80vmin;margin:0 auto}
+.storm{display:grid;grid-template-columns:repeat(8,1fr);gap:1.2vmin;max-width:80vmin;margin:0 auto 2.4vmin}
+.storm i{height:5vmin;border-radius:.9vmin;background:#191920;border:1px solid var(--line);transition:background .15s}
+.storm i.hot{background:var(--crimson);border-color:transparent}
+.chrow{display:flex;align-items:flex-end;gap:.7vmin;justify-content:center;height:24vmin;margin-bottom:2vmin}
+.chrow span{width:5.4vmin;border-radius:.8vmin .8vmin 0 0;background:#2a2a34;position:relative}
+.chrow span.good{background:var(--grad)}
+.chrow span i{position:absolute;bottom:-3.4vmin;left:0;right:0;text-align:center;font-family:var(--mono);font-size:1.7vmin;color:var(--soft);font-style:normal}
+
+
+/* media slides + editor */
+.s-img{background:#101016;border:1px solid var(--line);border-radius:2.4vmin;padding:2.4vmin;box-shadow:0 30px 80px #00000066;text-align:center}
+.s-img img{max-width:100%;max-height:74vh;border-radius:1.4vmin;object-fit:contain}
+.s-img .cap{margin-top:1.8vmin;font-size:2.2vmin;color:#cfcfd8}
+.s-img .cap b{font-family:var(--mono);font-size:1.5vmin;letter-spacing:.18em;color:var(--mid);display:block;margin-bottom:.5vmin}
+.editFab{position:fixed;top:2vmin;right:2vmin;z-index:20;border:1px dashed var(--mid);background:#1a1018d9;color:#f0c8da;
+ border-radius:99px;padding:1vmin 2.2vmin;font-family:var(--mono);font-size:1.7vmin;display:none}
+.editFab.show{display:block}
+.medit{position:fixed;inset:0;background:#0d0d12f2;z-index:30;display:none;place-items:center}
+.medit.on{display:grid}
+.medit .panel{width:min(640px,92vw);background:#17171f;border:1px solid var(--line);border-radius:16px;padding:26px;max-height:88vh;overflow-y:auto}
+.medit h2{font-family:var(--disp);font-size:20px;margin-bottom:4px}
+.medit .ses{font-family:var(--mono);font-size:11px;color:var(--mid);letter-spacing:.15em;margin-bottom:16px}
+.medit .row{display:grid;gap:8px;margin-bottom:12px}
+.medit label{font-family:var(--mono);font-size:11px;color:var(--soft);letter-spacing:.1em}
+.medit input[type=text],.medit input[type=url]{background:#101016;border:1px solid var(--line);border-radius:9px;color:#fff;padding:9px 12px;font-size:14px}
+.medit .kinds{display:flex;gap:8px}
+.medit .kinds button{flex:1;background:#101016;border:1px solid var(--line);border-radius:9px;color:var(--soft);padding:9px;font-size:13px}
+.medit .kinds button.sel{background:var(--grad);color:#fff;border-color:transparent}
+.medit .actions{display:flex;gap:8px;margin-top:14px}
+.medit .actions button{border-radius:9px;padding:9px 16px;font-size:13.5px;border:1px solid var(--line);background:#101016;color:#ddd}
+.medit .actions .go{background:var(--grad);border:0;color:#fff;font-weight:700}
+.medit ul{list-style:none;margin-top:16px;border-top:1px dashed var(--line);padding-top:12px;display:grid;gap:6px}
+.medit li{display:flex;align-items:center;gap:10px;font-size:12.5px;color:#cfcfd8;font-family:var(--mono)}
+.medit li button{margin-left:auto;border:0;background:none;color:var(--crimson);font-size:14px}
+.medit .hint{font-size:11.5px;color:var(--soft);line-height:1.5;margin-top:14px;border-top:1px dashed var(--line);padding-top:10px}
+.medit .io{display:flex;gap:8px;margin-top:10px}
+.medit .io button{flex:1;border:1px solid var(--line);background:#101016;color:var(--soft);border-radius:9px;padding:7px;font-family:var(--mono);font-size:11px}
+
+/* presenter notes */
+.notes{position:fixed;left:3vmin;right:3vmin;bottom:7vmin;max-height:72vh;overflow-y:auto;background:#000000d9;border:1px solid var(--line);
+ border-radius:1.6vmin;padding:2.4vmin 3vmin;font-size:2.3vmin;line-height:1.55;color:#ffe9a8;display:none;z-index:6;backdrop-filter:blur(6px)}
+.notes.on{display:block}
+.notes b{font-family:var(--mono);font-size:1.6vmin;letter-spacing:.18em;color:var(--mid);display:block;margin-bottom:.8vmin}
+
+/* session grid (menu) */
+.grid{position:fixed;inset:0;background:#0d0d12f2;z-index:10;display:none;overflow-y:auto;padding:5vmin}
+.grid.on{display:block}
+.grid h1{font-family:var(--disp);font-size:4vmin;margin-bottom:3vmin}
+.grid .ph{font-family:var(--mono);font-size:1.8vmin;letter-spacing:.2em;color:var(--mid);margin:3vmin 0 1.4vmin;text-transform:uppercase}
+.grid .cells{display:grid;grid-template-columns:repeat(auto-fill,minmax(26vmin,1fr));gap:1.6vmin}
+.grid button{background:#17171f;border:1px solid var(--line);border-radius:1.2vmin;color:#e8e8ee;
+ text-align:left;padding:1.8vmin;font-size:2vmin}
+.grid button b{font-family:var(--mono);color:var(--mid);display:block;font-size:1.6vmin;margin-bottom:.6vmin}
+.grid button:hover{border-color:var(--violet)}
+</style>
+</head>
+<body>
+<div class="stage" id="stage"></div>
+<div class="notes" id="notes"><b>PRESENTER NOTES — only you can see this (N to hide)</b><span id="ntext"></span></div>
+<button class="editFab" id="editFab">✎ ADD MEDIA TO THIS SESSION</button>
+<div class="medit" id="medit"><div class="panel">
+  <h2>Add media</h2><div class="ses" id="meSes"></div>
+  <div class="row"><label>WHAT ARE YOU ADDING?</label>
+    <div class="kinds">
+      <button data-k="upload" class="sel">📷 Upload photo</button>
+      <button data-k="url">🔗 Image URL</button>
+      <button data-k="yt">▶ YouTube link</button>
+      <button data-k="txt">📝 Text slide</button>
+    </div></div>
+  <div class="row" id="meUpRow"><label>CHOOSE AN IMAGE FILE (auto-resized, stored in this browser)</label>
+    <input type="file" id="meFile" accept="image/*"></div>
+  <div class="row" id="meUrlRow" style="display:none"><label>PASTE THE LINK</label>
+    <input type="url" id="meUrl" placeholder="https://…"></div>
+  <div class="row" id="meTxtRow" style="display:none"><label>SLIDE TITLE</label>
+    <input type="text" id="meTitle" placeholder="e.g. What our own helpdesk data shows">
+    <label style="margin-top:6px">BODY — one point per line (start a line with "- " for a bullet)</label>
+    <textarea id="meBody" rows="6" style="background:#101016;border:1px solid var(--line);border-radius:9px;color:#fff;padding:9px 12px;font-size:14px;font-family:var(--body)"></textarea></div>
+  <div class="row" id="meCapRow"><label>CAPTION (what the room should notice)</label>
+    <input type="text" id="meCap" placeholder="e.g. DDR4 (top) vs DDR5 — note the moved notch"></div>
+  <div class="actions"><button class="go" id="meAdd">Add to session</button><button id="meClose">Close</button></div>
+  <ul id="meList"></ul>
+  <div class="io"><button id="meExp">⬇ EXPORT MEDIA PACK</button><button id="meImpBtn">⬆ IMPORT MEDIA PACK</button>
+   <input type="file" id="meImp" accept=".json" style="display:none"></div>
+  <div class="hint"><b>Where to get real component photos, legally:</b> photograph your own lab hardware (best — trainees see the exact machines), or search commons.wikimedia.org (freely licensed) for e.g. "DDR4 SDRAM module", "Intel 4004", "IBM RAMAC", "motherboard labeled" and paste the image URL. Media saves in THIS browser; use Export to share the pack with co-trainers or move machines.</div>
+</div></div>
+<div class="toast" id="toast"></div>
+<div class="grid" id="grid"><h1>Jump to a session <span style="font-family:var(--mono);font-size:1.8vmin;color:var(--soft)">(Esc to close)</span></h1><div id="gridIn"></div></div>
+<div class="chrome">
+ <span class="phasechip" id="phch">PHASE 1</span>
+ <span id="pos">S01 · 1/8</span>
+ <div class="bar"><div class="fill" id="fill"></div></div>
+ <span class="kbd">→ next · ← back · G sessions · N notes · F fullscreen</span>
+</div>
+<script src="slides-data.js"></script>
+<script src="diagrams.js"></script>
+<script>
+/* ---------- build flat slide list ---------- */
+const phaseOf=n=>n<=10?1:n<=28?2:3;
+const DECK=[];
+/* ---------- media store (photos & extra videos added by the trainer) ---------- */
+const mem={};const store={get(k){try{const v=localStorage.getItem('sttc:'+k);return v?JSON.parse(v):(mem[k]??null)}catch(e){return mem[k]??null}},
+ set(k,v){mem[k]=v;try{localStorage.setItem('sttc:'+k,JSON.stringify(v))}catch(e){toastMsg('Storage full — export your media pack and remove an item')}}};
+let MEDIA=store.get('media')||{};   // {sessionIdx:[{kind:'img'|'yt',src|id,cap}]}
+function toastMsg(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+function buildDeck(){
+  DECK.length=0;
+  SESSIONS.forEach((s,si)=>{
+    const base={s:si,n:s.n,notes:s.notes};
+    DECK.push({...base,type:'title'});
+    DECK.push({...base,type:'hook',reveals:s.hook.length+(s.facts.length?1:0)});
+    DECK.push({...base,type:'q'});
+    s.ex.forEach((e,i)=>DECK.push({...base,type:'ex',i}));
+    s.vis.forEach((v,vi)=>DECK.push({...base,type:'vis',vi}));
+    DECK.push({...base,type:'cmp'});
+    if(s.vid)DECK.push({...base,type:'vid'});
+    if(s.demo)DECK.push({...base,type:'demo'});
+    DECK.push({...base,type:'wow'});
+    DECK.push({...base,type:'go'});
+  });
+  // weave user media at their anchors: after the (anchor)th slide of that session
+  Object.keys(MEDIA).forEach(si=>{
+    const items=(MEDIA[si]||[]).map((m,mi)=>({m,mi}));
+    // insert in reverse anchor order so indices stay valid
+    items.sort((a,b)=>(b.m.at??999)-(a.m.at??999));
+    items.forEach(({m,mi})=>{
+      const sess=DECK.map((d,i)=>({d,i})).filter(x=>x.d.s===+si&&!x.d.user);
+      const at=Math.min(m.at??sess.length-1,sess.length-1);
+      const pos=sess[at].i+1+DECK.slice(0,sess[at].i+1).filter(x=>x.user&&x.s===+si&&((MEDIA[si][x.mi].at??999)<= (m.at??999))).length*0;
+      DECK.splice(sess[at].i+1,0,{s:+si,n:SESSIONS[si].n,notes:SESSIONS[si].notes,user:true,type:m.kind==='yt'?'uvid':m.kind==='txt'?'utxt':'uimg',mi});
+    });
+  });
+}
+
+/* ---------- media editor ---------- */
+const medit=document.getElementById('medit'),editFab=document.getElementById('editFab');
+let meKind='upload';
+editFab.onclick=()=>{openEditor();};
+let meAnchor=0;
+function sessionBaseIndex(){ // index of current slide among this session's base slides
+  const d=DECK[cur];const sess=DECK.map((x,i)=>({x,i})).filter(y=>y.x.s===d.s&&!y.x.user);
+  if(d.user){ // inserting after a user slide: anchor to the nearest previous base slide
+    for(let i=cur;i>=0;i--){if(DECK[i].s===d.s&&!DECK[i].user)return sess.findIndex(y=>y.i===i);} }
+  return sess.findIndex(y=>y.i===cur);
+}
+function openEditor(){
+  meAnchor=Math.max(0,sessionBaseIndex());
+  document.getElementById('meSes').textContent='SESSION '+(DECK[cur].n)+' — new slide will appear RIGHT AFTER the slide you are viewing';
+  drawMeList();medit.classList.add('on');
+}
+document.getElementById('meClose').onclick=()=>medit.classList.remove('on');
+document.querySelectorAll('.medit .kinds button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.medit .kinds button').forEach(x=>x.classList.remove('sel'));
+  b.classList.add('sel');meKind=b.dataset.k;
+  document.getElementById('meUpRow').style.display=meKind==='upload'?'':'none';
+  document.getElementById('meUrlRow').style.display=(meKind==='url'||meKind==='yt')?'':'none';
+  document.getElementById('meTxtRow').style.display=meKind==='txt'?'':'none';
+  document.getElementById('meCapRow').style.display=meKind==='txt'?'none':'';
+});
+function drawMeList(){
+  const si=DECK[cur].s,list=MEDIA[si]||[];
+  document.getElementById('meList').innerHTML=list.map((m,i)=>
+   `<li>${m.kind==='yt'?'▶':m.kind==='txt'?'📝':'📷'} [after slide ${(m.at??0)+1}] ${(m.cap||m.title||m.id||'image').slice(0,40)}<button onclick="rmMedia(${si},${i})">✕ remove</button></li>`).join('')||'<li style="color:#666">no media added to this session yet</li>';
+}
+function rmMedia(si,i){MEDIA[si].splice(i,1);if(!MEDIA[si].length)delete MEDIA[si];store.set('media',MEDIA);buildDeck();drawMeList();render();}
+function shrinkImage(file,cb){
+  const img=new Image();img.onload=()=>{
+    const MAX=1600,sc=Math.min(1,MAX/Math.max(img.width,img.height));
+    const c=document.createElement('canvas');c.width=img.width*sc;c.height=img.height*sc;
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    cb(c.toDataURL('image/jpeg',0.82));URL.revokeObjectURL(img.src);};
+  img.src=URL.createObjectURL(file);
+}
+document.getElementById('meAdd').onclick=()=>{
+  const si=DECK[cur].s,cap=document.getElementById('meCap').value.trim();
+  const push=item=>{item.at=meAnchor;(MEDIA[si]=MEDIA[si]||[]).push(item);store.set('media',MEDIA);
+    document.getElementById('meCap').value='';buildDeck();drawMeList();toastMsg('Added right after this slide');};
+  if(meKind==='upload'){const f=document.getElementById('meFile').files[0];
+    if(!f){toastMsg('Choose an image file first');return}
+    shrinkImage(f,data=>push({kind:'img',src:data,cap}));}
+  else if(meKind==='url'){const u=document.getElementById('meUrl').value.trim();
+    if(!/^https?:\/\//.test(u)){toastMsg('Paste a full https:// image link');return}
+    push({kind:'img',src:u,cap});document.getElementById('meUrl').value='';}
+  else if(meKind==='txt'){const t=document.getElementById('meTitle').value.trim(),b=document.getElementById('meBody').value;
+    if(!t&&!b.trim()){toastMsg('Give the text slide a title or body');return}
+    push({kind:'txt',title:t,body:b});document.getElementById('meTitle').value='';document.getElementById('meBody').value='';}
+  else{const u=document.getElementById('meUrl').value.trim(),m=u.match(/(?:youtu\.be\/|v=|\/embed\/|shorts\/)([\w-]{11})/)||u.match(/^([\w-]{11})$/);
+    if(!m){toastMsg('That does not look like a YouTube link');return}
+    push({kind:'yt',id:m[1],cap});document.getElementById('meUrl').value='';}
+};
+document.getElementById('meExp').onclick=()=>{
+  const blob=new Blob([JSON.stringify(MEDIA)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='classroom-media-pack.json';a.click();
+  toastMsg('Media pack exported');};
+document.getElementById('meImpBtn').onclick=()=>document.getElementById('meImp').click();
+document.getElementById('meImp').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{MEDIA=JSON.parse(r.result);store.set('media',MEDIA);buildDeck();drawMeList();render();toastMsg('Media pack imported');}
+   catch(err){toastMsg('That file is not a valid media pack');}};
+  r.readAsText(f);};
+
+buildDeck();
+let cur=0,reveal=0;
+const stage=document.getElementById('stage');
+
+function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function render(){
+  editFab.classList.add('show');
+  const d=DECK[cur],s=SESSIONS[d.s];
+  const slidesInSession=DECK.filter(x=>x.s===d.s).length;
+  const idxInSession=DECK.slice(0,cur+1).filter(x=>x.s===d.s).length;
+  let html='';
+  if(d.type==='title')html=`<div class="slide on s-title">
+    <div class="eyebrow">Support-to-Tech · <b>Session ${s.n} of 42</b></div>
+    <div class="num">${String(s.n).padStart(2,'0')}</div><h1>${esc(s.title)}</h1>
+    <div class="sub">Phase ${phaseOf(s.n)} — press → when the room settles</div></div>`;
+  if(d.type==='hook')html=`<div class="slide on s-hook">
+    <div class="eyebrow">Tonight's true story</div>
+    ${s.hook.map((l,i)=>`<div class="line ${i<reveal?'show':''}">${esc(l)}</div>`).join('')}
+    ${s.facts.length?`<div class="facts ${reveal>s.hook.length?'show':''}">${s.facts.map(f=>`<div>${esc(f)}</div>`).join('')}</div>`:''}</div>`;
+  if(d.type==='q')html=`<div class="slide on s-q">
+    <div class="mark">?</div><h1>${esc(s.q)}</h1>
+    <div class="eyebrow" style="margin-top:4vmin">Argue for two minutes — then we explain</div></div>`;
+  if(d.type==='ex'){const e=s.ex[d.i];html=`<div class="slide on s-ex">
+    <div class="eyebrow">Session ${s.n} · explainer ${d.i+1}/${s.ex.length}</div>
+    <h1>${esc(e.t)}</h1><ul>${e.pts.map(p=>`<li>${esc(p)}</li>`).join('')}</ul></div>`;}
+  if(d.type==='cmp'){const c=s.cmp;html=`<div class="slide on s-cmp">
+    <h1>${esc(c.t)}</h1><div class="cols">
+    <div class="card"><div class="big">${esc(c.a[0])}</div><div class="sub">${esc(c.a[1])}</div></div>
+    <div class="vs">VS</div>
+    <div class="card b"><div class="big">${esc(c.b[0])}</div><div class="sub">${esc(c.b[1])}</div></div></div></div>`;}
+  if(d.type==='wow')html=`<div class="slide on s-wow">
+    <div class="big">${esc(s.wow[0])}</div><div class="small">${esc(s.wow[1])}</div></div>`;
+  if(d.type==='go')html=`<div class="slide on s-go">
+    <h1>Over to you</h1><p>${esc(s.handoff)}</p>
+    <div class="next">NEXT SESSION → ${s.n<42?String(s.n+1).padStart(2,'0')+' · '+esc(SESSIONS[d.s+1].title):'GRADUATION 🎓'}</div></div>`;
+  if(d.type==='vis')html=`<div class="slide on s-vis">${DIAGRAMS[s.vis[d.vi]]()}</div>`;
+  if(d.type==='uimg'){const m=MEDIA[d.s][d.mi];html=`<div class="slide on s-img">
+    <img src="${m.src}" alt="${esc(m.cap||'session photo')}">
+    <div class="cap"><b>REAL HARDWARE</b>${esc(m.cap||'')}</div></div>`;}
+  if(d.type==='utxt'){const m=MEDIA[d.s][d.mi];
+    const lines=String(m.body||'').split('\n').filter(x=>x.trim());
+    html=`<div class="slide on s-ex"><div class="eyebrow">Session ${s.n} · added by your trainer</div>
+    <h1>${esc(m.title||'')}</h1>
+    ${lines.length?(lines.every(l=>l.trim().startsWith('- '))?
+      `<ul>${lines.map(l=>`<li>${esc(l.trim().slice(2))}</li>`).join('')}</ul>`:
+      lines.map(l=>l.trim().startsWith('- ')?`<ul style="margin:.6vmin 0"><li>${esc(l.trim().slice(2))}</li></ul>`:`<p style="font-size:3vmin;line-height:1.5;margin:1.4vmin 0">${esc(l)}</p>`).join('')):''}</div>`;}
+  if(d.type==='uvid'){const m=MEDIA[d.s][d.mi];html=`<div class="slide on s-vid">
+    <h1><span>ADDED VIDEO</span>${esc(m.cap||'Watch')}</h1>
+    <div class="frame" id="vidFrame"><div class="offline"><button class="osiBtn" style="display:inline;margin:0" onclick="playVid('${m.id}')">▶ Load the video</button></div></div></div>`;}
+  if(d.type==='vid')html=`<div class="slide on s-vid">
+    <h1><span>SHORT VIDEO · ~5 MIN</span>Watch: the animation version</h1>
+    <div class="frame" id="vidFrame"><div class="offline">Press → … or <button class="osiBtn" style="display:inline;margin:0 1vmin" onclick="playVid('${s.vid}')">▶ Load the video</button> (needs internet)</div></div></div>`;
+  if(d.type==='demo')html=`<div class="slide on s-demo" id="demoRoot"></div>`;
+  stage.innerHTML=html;
+  if(d.type==='demo')DEMOS[s.demo]();
+  document.getElementById('phch').textContent='PHASE '+phaseOf(s.n);
+  document.getElementById('pos').textContent=`S${String(s.n).padStart(2,'0')} · ${idxInSession}/${slidesInSession}`;
+  document.getElementById('fill').style.width=((cur+1)/DECK.length*100)+'%';
+  const nt=document.getElementById('ntext');
+  nt.innerHTML='<div style="margin-bottom:1.4vmin">'+esc(d.notes||'')+'</div>'+
+   (s.deep&&s.deep.length?'<div style="font-family:var(--mono);font-size:1.5vmin;letter-spacing:.18em;color:var(--mid);margin:1vmin 0 .8vmin">DEEP BACKGROUND — the lookup work, pre-done</div>'+
+    s.deep.map(x=>'<div style="margin:.7vmin 0;padding-left:1.6vmin;border-left:2px solid #4a3a50;color:#e8dcc0;font-size:2vmin">'+esc(x)+'</div>').join(''):'');
+}
+function next(){
+  const d=DECK[cur];
+  if(d.type==='hook'&&reveal<d.reveals){reveal++;render();return;}
+  if(cur<DECK.length-1){cur++;reveal=DECK[cur].type==='hook'?0:0;render();}
+}
+function prev(){
+  const d=DECK[cur];
+  if(d.type==='hook'&&reveal>0){reveal--;render();return;}
+  if(cur>0){cur--;reveal=DECK[cur].type==='hook'?DECK[cur].reveals:0;render();}
+}
+function goSession(si){cur=DECK.findIndex(x=>x.s===si);reveal=0;grid.classList.remove('on');render();}
+
+/* ---------- demos ---------- */
+const DEMOS={
+ binary(){const r=document.getElementById('demoRoot');let bits=[0,0,0,0,0,0,0,0];
+  r.innerHTML=`<h1><span>LIVE DEMO</span>Click the bits — the room calls a number, you build it</h1>
+   <div class="bits">${bits.map((b,i)=>`<button class="bit" data-i="${i}">0<small>${128>>i}</small></button>`).join('')}</div>
+   <div class="binout"><div>BINARY<b id="bv">00000000</b></div><div>DECIMAL<b id="dv">0</b></div><div>HEX<b id="hv">00</b></div></div>`;
+  r.querySelectorAll('.bit').forEach(btn=>btn.onclick=()=>{const i=+btn.dataset.i;bits[i]^=1;
+   btn.classList.toggle('on',!!bits[i]);btn.firstChild.textContent=bits[i];
+   const v=bits.reduce((a,b,j)=>a+(b<<(7-j)),0);
+   document.getElementById('bv').textContent=bits.join('');
+   document.getElementById('dv').textContent=v;
+   document.getElementById('hv').textContent=v.toString(16).toUpperCase().padStart(2,'0');});},
+ password(){const r=document.getElementById('demoRoot');
+  r.innerHTML=`<h1><span>LIVE DEMO</span>Invent a FAKE password — watch the crack-time</h1>
+   <div class="pwrow"><input id="pw" placeholder="type here…" autocomplete="off"></div>
+   <div class="pwout"><div class="t" id="pt">—</div><div class="d" id="pd">guessing at 10 billion tries/second (offline attack)</div></div>`;
+  const fmt=s=>{if(s<1)return'instantly';const u=[['years',31557600],['days',86400],['hours',3600],['minutes',60],['seconds',1]];
+   for(const[n,v]of u){if(s>=v){const q=s/v;return q>1e15?'longer than the universe':q>=1?Math.round(q).toLocaleString()+' '+n:null}}return'instantly'};
+  document.getElementById('pw').oninput=e=>{const p=e.target.value;let pool=0;
+   if(/[a-z]/.test(p))pool+=26;if(/[A-Z]/.test(p))pool+=26;if(/\d/.test(p))pool+=10;if(/[^a-zA-Z0-9]/.test(p))pool+=33;
+   const secs=p?Math.pow(pool,p.length)/2/1e10:0;
+   document.getElementById('pt').textContent=p?fmt(secs):'—';};},
+ ports(){const r=document.getElementById('demoRoot');
+  const QS=[["Secure web (HTTPS)",443],["Web (HTTP)",80],["DNS",53],["Remote Desktop",3389],["SSH",22],["File sharing (SMB)",445]];
+  let qi=0,score=0;
+  function draw(){const[name,ans]=QS[qi];const opts=[...new Set([ans,443,80,53,3389,22,445].sort(()=>Math.random()-.5))].slice(0,6);
+   if(!opts.includes(ans))opts[0]=ans;
+   r.innerHTML=`<h1><span>LIVE GAME</span>Name that port</h1><div class="portQ">${name} → ?</div>
+    <div class="portgrid">${opts.sort(()=>Math.random()-.5).map(o=>`<button data-v="${o}">${o}</button>`).join('')}</div>
+    <div class="portScore">round ${qi+1}/${QS.length} · score ${score}</div>`;
+   r.querySelectorAll('.portgrid button').forEach(b=>b.onclick=()=>{
+    if(+b.dataset.v===ans){b.classList.add('hit');score++;}else b.classList.add('miss');
+    setTimeout(()=>{qi++;qi<QS.length?draw():r.querySelector('.portQ').textContent=`Final: ${score}/${QS.length} — rematch? Press ← then →`},650);});}
+  draw();},
+ osi(){const r=document.getElementById('demoRoot');
+  const L=[["L7","Application — HTTP request created"],["L4","Transport — wrapped in a TCP segment, port 443"],["L3","Network — wrapped in an IP packet, addressed"],["L2","Data Link — framed with MAC addresses"],["L1","Physical — bits on the wire ⚡"]];
+  r.innerHTML=`<h1><span>LIVE DEMO</span>One click of 'Send' — the nesting dolls</h1>
+   <div class="osi">${L.map((l,i)=>`<div class="layer" id="L${i}"><b>${l[0]}</b>${l[1]}<span class="pkt" id="P${i}"></span></div>`).join('')}</div>
+   <button class="osiBtn" id="run">Send the packet ▶</button>`;
+  document.getElementById('run').onclick=()=>{let i=0;const wraps=["[data]","[TCP[data]]","[IP[TCP[data]]]","[ETH[IP[TCP[data]]]]","101101…"];
+   document.querySelectorAll('.layer').forEach(l=>l.classList.remove('active'));
+   document.querySelectorAll('.pkt').forEach(p=>p.textContent='');
+   const t=setInterval(()=>{if(i>0)document.getElementById('L'+(i-1)).classList.remove('active');
+    if(i>=L.length){clearInterval(t);return}
+    document.getElementById('L'+i).classList.add('active');
+    document.getElementById('P'+i).textContent=wraps[i];i++;},900);};},
+ subnet(){const r=document.getElementById('demoRoot');
+  r.innerHTML=`<h1><span>LIVE DEMO</span>The room calls an address — the math appears</h1>
+   <div class="snrow"><input id="ip" value="192.168.10.45"><select id="cidr">${[24,25,26,27,28,29,30,23,22,16].map(c=>`<option ${c===26?'selected':''}>${c}</option>`).join('')}</select></div>
+   <div class="snout"><div><span>NETWORK</span><b id="o1">—</b></div><div><span>BROADCAST</span><b id="o2">—</b></div>
+   <div><span>USABLE RANGE</span><b id="o3" style="font-size:2.6vmin">—</b></div><div><span>USABLE HOSTS</span><b id="o4">—</b></div></div>`;
+  function calc(){const ip=document.getElementById('ip').value.trim().split('.').map(Number);
+   const c=+document.getElementById('cidr').value;
+   if(ip.length!==4||ip.some(o=>isNaN(o)||o<0||o>255)){o1.textContent='?';return}
+   const n=((ip[0]<<24)|(ip[1]<<16)|(ip[2]<<8)|ip[3])>>>0,mask=c===0?0:(0xFFFFFFFF<<(32-c))>>>0;
+   const net=(n&mask)>>>0,bc=(net|(~mask>>>0))>>>0,d=x=>[x>>>24,(x>>>16)&255,(x>>>8)&255,x&255].join('.');
+   o1.textContent=d(net)+'/'+c;o2.textContent=d(bc);
+   const hosts=c>=31?(c===31?2:1):Math.pow(2,32-c)-2;
+   o3.textContent=c>=31?d(net)+'–'+d(bc):d(net+1)+' – '+d(bc-1);o4.textContent=hosts.toLocaleString();}
+  ['ip','cidr'].forEach(id=>document.getElementById(id).oninput=calc);calc();},
+ laser(){const r=document.getElementById('demoRoot');
+  const ST=[["CHARGE","drum gets a uniform charge","The drum is blanketed with static charge — a clean slate."],
+   ["EXPOSE","laser draws the page","The laser knocks charge off exactly where toner should stick."],
+   ["DEVELOP","toner jumps to the image","Charged toner powder clings only to the drawn areas."],
+   ["TRANSFER","toner moves to paper","The page is pulled past; toner leaps across."],
+   ["FUSE","~200°C melts it on","Heat + pressure weld toner to paper. Smears when touched? THIS step failed."],
+   ["CLEAN","drum wiped for next page","Leftover toner is scraped off. Skipped? Ghost images."]];
+  r.innerHTML=`<h1><span>LIVE SIMULATION</span>The laser printing process — step through it</h1>
+   <div class="lz">${ST.map((s,i)=>`<div class="st" id="lz${i}"><b>${i+1}</b>${s[0]}</div>`).join('')}</div>
+   <div class="simNote" id="lzN">Press the button — each fault you'll ever see maps to one step.</div>
+   <button class="osiBtn" id="lzB">Next step ▶</button>`;
+  let i=-1;document.getElementById('lzB').onclick=()=>{if(i>=0)document.getElementById('lz'+i).classList.remove('active');
+   i=(i+1)%ST.length;document.getElementById('lz'+i).classList.add('active');
+   document.getElementById('lzN').innerHTML='<b>'+ST[i][0]+'</b> — '+ST[i][2];};},
+ storm(){const r=document.getElementById('demoRoot');
+  r.innerHTML=`<h1><span>LIVE SIMULATION</span>Broadcast storm — why STP exists</h1>
+   <div class="storm">${Array.from({length:32},(_,i)=>`<i id="c${i}"></i>`).join('')}</div>
+   <div class="simNote" id="stN">Two switches, looped. One broadcast frame enters…</div>
+   <button class="osiBtn" id="stB">Release one frame ▶</button>`;
+  document.getElementById('stB').onclick=()=>{let hot=[0],tick=0;
+   document.querySelectorAll('.storm i').forEach(c=>c.classList.remove('hot'));
+   const t=setInterval(()=>{hot.forEach(i=>{const c=document.getElementById('c'+i);if(c)c.classList.add('hot')});
+    document.getElementById('stN').textContent='Copies in flight: '+Math.min(2**tick,32)+(tick>3?' — the network is drowning in its own echo':'');
+    hot=hot.flatMap(i=>[i*2+1,i*2+2]).filter(i=>i<32);tick++;
+    if(!hot.length){clearInterval(t);document.getElementById('stN').textContent='Total flood. Spanning Tree blocks one link — and this never happens.';}},700);};},
+ nat(){const r=document.getElementById('demoRoot');
+  const rows=[["192.168.1.12 : 50311","→","203.0.113.7 : 40001"],["192.168.1.45 : 50902","→","203.0.113.7 : 40002"],["192.168.1.80 : 51444","→","203.0.113.7 : 40003"]];
+  r.innerHTML=`<h1><span>LIVE SIMULATION</span>NAT — many devices, one public address</h1>
+   <div class="osi" style="max-width:96vmin">${rows.map((w,i)=>`<div class="layer" id="nr${i}"><b>PC ${i+1}</b>${w[0]} <span class="pkt">${w[1]}  ${w[2]}</span></div>`).join('')}
+   <div class="layer" style="border-color:var(--mid)"><b>WHY</b>The router rewrites the source and keeps this table — replies find their way home<span class="pkt">203.0.113.7 = everyone</span></div></div>
+   <button class="osiBtn" id="ntB">Send three packets ▶</button>`;
+  document.getElementById('ntB').onclick=()=>{let i=0;document.querySelectorAll('.layer').forEach(l=>l.classList.remove('active'));
+   const t=setInterval(()=>{if(i>0)document.getElementById('nr'+(i-1)).classList.remove('active');
+    if(i>=3){clearInterval(t);return}document.getElementById('nr'+i).classList.add('active');i++;},800);};},
+ wifi(){const r=document.getElementById('demoRoot');
+  r.innerHTML=`<h1><span>LIVE SIMULATION</span>2.4 GHz — why only channels 1, 6, 11</h1>
+   <div class="chrow">${Array.from({length:11},(_,i)=>{const ch=i+1,good=[1,6,11].includes(ch);
+    return `<span class="${good?'good':''}" style="height:${good?22:9+((i*5)%8)}vmin"><i>${ch}</i></span>`}).join('')}
+   </div><div class="simNote">Each channel is ~22 MHz wide but spaced only 5 MHz apart — neighbors OVERLAP and shout over each other.<br>Only 1, 6 and 11 don't touch. Everything else (and the office microwave) is interference.</div>`;},
+ dora(){const r=document.getElementById('demoRoot');
+  const ST=[["DISCOVER","PC shouts: 'any DHCP servers out there?'","broadcast"],["OFFER","Server: 'you can have 192.168.1.57'","unicast-ish"],["REQUEST","PC: 'yes please, I'll take .57'","broadcast"],["ACKNOWLEDGE","Server: 'it's yours — lease: 8 hours' + mask, gateway, DNS","done ✓"]];
+  r.innerHTML=`<h1><span>LIVE SIMULATION</span>DHCP — the DORA handshake</h1>
+   <div class="osi" style="max-width:88vmin">${ST.map((s,i)=>`<div class="layer" id="do${i}"><b>${s[0][0]}</b>${s[0]} — ${s[1]}<span class="pkt">${s[2]}</span></div>`).join('')}</div>
+   <button class="osiBtn" id="doB">Run the lease ▶</button>
+   <div class="simNote" style="margin-top:2vmin">No server answers? The PC self-assigns 169.254.x.x — the loneliest address on the network.</div>`;
+  document.getElementById('doB').onclick=()=>{let i=0;document.querySelectorAll('.layer').forEach(l=>l.classList.remove('active'));
+   const t=setInterval(()=>{if(i>0)document.getElementById('do'+(i-1)).classList.remove('active');
+    if(i>=4){clearInterval(t);return}document.getElementById('do'+i).classList.add('active');i++;},900);};}
+};
+function playVid(id){const f=document.getElementById('vidFrame');
+ if(location.protocol==='file:'){f.innerHTML='<div class="offline">Videos need internet + a non-file context in some browsers. If blank: open this deck via a local server (python -m http.server) or play the clip from a browser tab.</div>';}
+ f.innerHTML=`<iframe src="https://www.youtube.com/embed/${id}?rel=0&autoplay=1" title="lesson video" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;}
+
+/* ---------- session grid ---------- */
+const grid=document.getElementById('grid'),gridIn=document.getElementById('gridIn');
+const PH=[["Phase 1 — IT Foundations",0,9],["Phase 2 — A+ Track",10,27],["Phase 3 — Networking",28,41]];
+gridIn.innerHTML=PH.map(([t,a,b])=>`<div class="ph">${t}</div><div class="cells">
+ ${SESSIONS.slice(a,b+1).map((s,i)=>`<button onclick="goSession(${a+i})"><b>SESSION ${s.n}</b>${esc(s.title)}</button>`).join('')}</div>`).join('');
+
+/* ---------- input ---------- */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();next();}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp')prev();
+  else if(e.key==='g'||e.key==='G')grid.classList.toggle('on');
+  else if(e.key==='Escape')grid.classList.remove('on');
+  else if(e.key==='n'||e.key==='N')document.getElementById('notes').classList.toggle('on');
+  else if(e.key==='f'||e.key==='F')document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();
+});
+document.addEventListener('click',e=>{
+  if(grid.classList.contains('on'))return;
+  if(['BUTTON','INPUT','SELECT'].includes(e.target.tagName))return;
+  next();
+});
+render();
+</script>
+</body>
+</html>
