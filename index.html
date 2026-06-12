@@ -223,13 +223,14 @@ button{font:inherit;cursor:pointer}
     <div class="kinds">
       <button data-k="upload" class="sel">📷 Upload photo</button>
       <button data-k="url">🔗 Image URL</button>
-      <button data-k="yt">▶ YouTube link</button>
+      <button data-k="yt">▶ Video link</button>
       <button data-k="txt">📝 Text slide</button>
     </div></div>
   <div class="row" id="meUpRow"><label>CHOOSE AN IMAGE FILE (auto-resized, stored in this browser)</label>
     <input type="file" id="meFile" accept="image/*"></div>
   <div class="row" id="meUrlRow" style="display:none"><label>PASTE THE LINK</label>
-    <input type="url" id="meUrl" placeholder="https://…"></div>
+    <input type="url" id="meUrl" placeholder="https://…">
+    <div style="font-size:11px;color:#8a8a94;line-height:1.5">Video accepts: YouTube · Vimeo · direct video files (.mp4/.webm — a relative path like <b>videos/clip.mp4</b> works if you commit the file to your repo) · any other https link becomes a generic embed (some sites block embedding).</div></div>
   <div class="row" id="meTxtRow" style="display:none"><label>SLIDE TITLE</label>
     <input type="text" id="meTitle" placeholder="e.g. What our own helpdesk data shows">
     <label style="margin-top:6px">BODY — one point per line (start a line with "- " for a bullet)</label>
@@ -249,7 +250,7 @@ button{font:inherit;cursor:pointer}
  <span id="pos">S01 · 1/8</span>
  <div class="bar"><div class="fill" id="fill"></div></div>
  <span class="kbd">→ next · ← back · G sessions · N details · I instructor · F fullscreen · ✎ add media</span>
- <span class="phasechip" style="opacity:.55">BUILD v7</span>
+ <span class="phasechip" style="opacity:.55">BUILD v8</span>
 </div>
 <script src="slides-data.js"></script>
 <script src="diagrams.js"></script>
@@ -283,7 +284,7 @@ function buildDeck(){
       DECK.push(b);
       media.filter(x=>Math.min(x.m.at??base.length-1,base.length-1)===bi)
         .forEach(x=>DECK.push({s:si,n:s.n,notes:s.notes,user:true,
-          type:x.m.kind==='yt'?'uvid':x.m.kind==='txt'?'utxt':'uimg',mi:x.mi}));
+          type:['yt','vimeo','file','embed'].includes(x.m.kind)?'uvid':x.m.kind==='txt'?'utxt':'uimg',mi:x.mi}));
     });
   });
 }
@@ -316,7 +317,7 @@ document.querySelectorAll('.medit .kinds button').forEach(b=>b.onclick=()=>{
 function drawMeList(){
   const si=DECK[cur].s,list=MEDIA[si]||[];
   document.getElementById('meList').innerHTML=list.map((m,i)=>
-   `<li>${m.kind==='yt'?'▶':m.kind==='txt'?'📝':'📷'} [after slide ${(m.at??0)+1}] ${(m.cap||m.title||m.id||'image').slice(0,40)}<button onclick="rmMedia(${si},${i})">✕ remove</button></li>`).join('')||'<li style="color:#666">no media added to this session yet</li>';
+   `<li>${['yt','vimeo','file','embed'].includes(m.kind)?'▶':m.kind==='txt'?'📝':'📷'} [after slide ${(m.at??0)+1}] ${(m.cap||m.title||m.id||'image').slice(0,40)}<button onclick="rmMedia(${si},${i})">✕ remove</button></li>`).join('')||'<li style="color:#666">no media added to this session yet</li>';
 }
 function rmMedia(si,i){MEDIA[si].splice(i,1);if(!MEDIA[si].length)delete MEDIA[si];store.set('media',MEDIA);buildDeck();drawMeList();render();}
 function shrinkImage(file,cb){
@@ -340,9 +341,17 @@ document.getElementById('meAdd').onclick=()=>{
   else if(meKind==='txt'){const t=document.getElementById('meTitle').value.trim(),b=document.getElementById('meBody').value;
     if(!t&&!b.trim()){toastMsg('Give the text slide a title or body');return}
     push({kind:'txt',title:t,body:b});document.getElementById('meTitle').value='';document.getElementById('meBody').value='';}
-  else{const u=document.getElementById('meUrl').value.trim(),m=u.match(/(?:youtu\.be\/|v=|\/embed\/|shorts\/)([\w-]{11})/)||u.match(/^([\w-]{11})$/);
-    if(!m){toastMsg('That does not look like a YouTube link');return}
-    push({kind:'yt',id:m[1],cap});document.getElementById('meUrl').value='';}
+  else{const u=document.getElementById('meUrl').value.trim();
+    const yt=u.match(/(?:youtu\.be\/|v=|\/embed\/|shorts\/)([\w-]{11})/)||u.match(/^([\w-]{11})$/);
+    const vm=u.match(/vimeo\.com\/(?:video\/)?([0-9]{6,})/);
+    const isFile=/\.(mp4|webm|ogv|ogg|mov|m4v)([?#].*)?$/i.test(u);
+    let item=null;
+    if(yt)item={kind:'yt',id:yt[1],cap};
+    else if(vm)item={kind:'vimeo',id:vm[1],cap};
+    else if(isFile)item={kind:'file',src:u,cap};
+    else if(/^https?:\/\//.test(u))item={kind:'embed',src:u,cap};
+    if(!item){toastMsg('Paste a video link: YouTube, Vimeo, a .mp4/.webm URL, or any https page');return}
+    push(item);document.getElementById('meUrl').value='';}
 };
 document.getElementById('meExp').onclick=()=>{
   const blob=new Blob([JSON.stringify(MEDIA)],{type:'application/json'});
@@ -403,7 +412,7 @@ function render(){
       lines.map(l=>l.trim().startsWith('- ')?`<ul style="margin:.6vmin 0"><li>${esc(l.trim().slice(2))}</li></ul>`:`<p style="font-size:3vmin;line-height:1.5;margin:1.4vmin 0">${esc(l)}</p>`).join('')):''}</div>`;}
   if(d.type==='uvid'){const m=MEDIA[d.s][d.mi];html=`<div class="slide on s-vid">
     <h1><span>ADDED VIDEO</span>${esc(m.cap||'Watch')}</h1>
-    <div class="frame" id="vidFrame"><div class="offline"><button class="osiBtn" style="display:inline;margin:0" onclick="playVid('${m.id}')">▶ Load the video</button></div></div></div>`;}
+    <div class="frame" id="vidFrame"><div class="offline"><button class="osiBtn" style="display:inline;margin:0" onclick="loadUserVid(${d.s},${d.mi})">▶ Load the video</button></div></div></div>`;}
   if(d.type==='vid')html=`<div class="slide on s-vid">
     <h1><span>SHORT VIDEO · ~5 MIN</span>Watch: the animation version</h1>
     <div class="frame" id="vidFrame"><div class="offline">Press → … or <button class="osiBtn" style="display:inline;margin:0 1vmin" onclick="playVid('${s.vid}')">▶ Load the video</button> (needs internet)</div></div></div>`;
@@ -543,6 +552,14 @@ const DEMOS={
    const t=setInterval(()=>{if(i>0)document.getElementById('do'+(i-1)).classList.remove('active');
     if(i>=4){clearInterval(t);return}document.getElementById('do'+i).classList.add('active');i++;},900);};}
 };
+function loadUserVid(si,mi){
+  const m=MEDIA[si][mi],f=document.getElementById('vidFrame');
+  if(m.kind==='yt')return playVid(m.id);
+  if(m.kind==='vimeo'){f.innerHTML=`<iframe src="https://player.vimeo.com/video/${m.id}" title="lesson video" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;return;}
+  if(m.kind==='file'){f.innerHTML=`<video src="${m.src}" controls autoplay playsinline style="display:block;width:100%;max-height:78vh;background:#000"></video>`;return;}
+  f.innerHTML=`<iframe src="${m.src}" title="embedded content" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
+   <div style="padding:1vmin 2vmin;font-size:1.7vmin;color:#9a9aa4;font-family:var(--mono)">Blank frame? That site blocks embedding — open it in a tab instead.</div>`;
+}
 function playVid(id){const f=document.getElementById('vidFrame');
  if(location.protocol==='file:'){f.innerHTML='<div class="offline">Videos need internet + a non-file context in some browsers. If blank: open this deck via a local server (python -m http.server) or play the clip from a browser tab.</div>';}
  f.innerHTML=`<iframe src="https://www.youtube.com/embed/${id}?rel=0&autoplay=1" title="lesson video" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;}

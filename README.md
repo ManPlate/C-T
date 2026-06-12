@@ -57,7 +57,7 @@ Click **✎ ADD MEDIA TO THIS SESSION** on any slide:
 The new slide appears immediately after the slide you were viewing.
 Media lives per-browser: use **Export/Import media pack** (in the
 editor) to move your curated set between machines or share with
-co-trainers. The footer shows the build number (currently **v7**) — if
+co-trainers. The footer shows the build number (currently **v8**) — if
 behavior seems off, confirm you're running the latest files.
 
 ## Editing the course content
