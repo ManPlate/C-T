@@ -730,3 +730,133 @@ const DEEP={
 };
 SESSIONS.forEach(s=>{s.deep=DEEP[s.n]||[];});
 if(typeof module!=='undefined')module.exports=SESSIONS;
+
+/* ===== PLAIN-LANGUAGE REWRITE (v12): Phase 1 explainers rewritten for complete novices.
+   Everyday analogies, short sentences, and a "where you see this today" thread.
+   Edit freely — this block overrides the originals, so your changes live in one place. */
+const SIMPLE={
+1:{title:"What is a computer & how does it think?",
+ q:"The Moon computer had 4 KB of memory. Your phone has millions of times more. What matters more — raw power, or using it well?",
+ ex:[
+ {t:"What is a computer, really?",pts:[
+  "Anything that takes an INPUT, PROCESSES it, and gives an OUTPUT",
+  "Your phone, an ATM, a smart TV, a washing machine — all computers",
+  "Input: your tap · Process: tiny decisions inside · Output: the screen changes",
+  "A laptop is just the version with a keyboard attached"]},
+ {t:"Inside, everything is electricity",pts:[
+  "A computer is millions of tiny switches — each one ON or OFF",
+  "ON = 1, OFF = 0. That is the ONLY language it speaks",
+  "Even fiber internet arrives as LIGHT — the small box your ISP installs at home converts it back into electrical signals",
+  "Every photo, song and password is a very long pattern of ON/OFF"]},
+ {t:"Counting with just ON and OFF",pts:[
+  "We count with 10 digits (0–9); computers have only 2 (0 and 1)",
+  "Each position doubles in value: 1, 2, 4, 8 — like coins of fixed sizes",
+  "1010 means 8 + 2 = ten",
+  "Hex (0–9 then A–F) is just shorthand for long binary — that's why codes look like A3:5F"]}]},
+2:{ex:[
+ {t:"The kitchen analogy",pts:[
+  "CPU = the cook — does all the actual work",
+  "RAM = the kitchen counter — fast workspace, cleared constantly",
+  "Storage = the pantry — keeps things even when the lights go off",
+  "Power supply = the gas line · Motherboard = the kitchen everything sits in"]},
+ {t:"Why 'switch it off and on' really works",pts:[
+  "The counter (RAM) is wiped clean every time power goes",
+  "A stuck, messy counter? Restart = a clean counter",
+  "Your files live in the pantry (storage) — they survive the restart",
+  "Now you know WHY the oldest advice in IT is genuinely good advice"]}]},
+3:{ex:[
+ {t:"The operating system = the manager",pts:[
+  "Decides which app gets the cook (CPU) and counter (RAM) right now",
+  "Talks to every device — printer, mouse, Wi-Fi — through 'drivers'",
+  "Arranges the pantry into files and folders",
+  "An app misbehaves? The manager can force it out (Task Manager)"]},
+ {t:"Four families, one skillset",pts:[
+  "Windows — most office desktops · macOS — Apple machines",
+  "Linux — free, runs most of the internet's servers",
+  "Android & iOS — the computers in everyone's pocket",
+  "An account, a file, a setting mean the SAME everywhere — only the buttons move"]}]},
+4:{ex:[
+ {t:"Apps have a life cycle",pts:[
+  "Install → Update → Repair → Uninstall",
+  "Most 'weird behaviour' tickets end with: install the pending update",
+  "Repair fixes a damaged app WITHOUT losing settings",
+  "Uninstall cleanly — leftovers cause tomorrow's tickets"]},
+ {t:"Free or paid — read the label",pts:[
+  "Paid: per person or monthly — like an OTT subscription",
+  "Open source: free to use AND to change (a shared recipe)",
+  "'Free' apps often pay themselves with ads or your data",
+  "Companies get sued for unlicensed software — really"]}]},
+5:{ex:[
+ {t:"All software is just three moves",pts:[
+  "Do steps in order (sequence)",
+  "IF this, THEN that (decision)",
+  "REPEAT until done (loop)",
+  "That's the whole secret — everything else is decoration"]},
+ {t:"Reading logic like a recipe",pts:[
+  "In a flowchart: rectangle = an action, diamond = a question",
+  "A variable is a labelled box that holds a value",
+  "If you can write a recipe, you can write logic",
+  "Today you'll write a real support task as exact steps"]}]},
+6:{ex:[
+ {t:"A database is a smart register",pts:[
+  "Tables = pages of rows and columns, like an attendance register",
+  "Every row has a unique ID — like an employee code",
+  "Banking, train tickets, your HR portal — all reading tables",
+  "Behind every app you've ever used, a database holds the truth"]},
+ {t:"One magic word: SELECT",pts:[
+  "SELECT name FROM employees WHERE team = 'Support'",
+  "WHERE filters the rows · ORDER BY sorts them",
+  "Reading data confidently is a quiet superpower in support work",
+  "You'll run real queries in your browser within 20 minutes today"]}]},
+7:{ex:[
+ {t:"The journey of your home internet",pts:[
+  "The ISP's fiber reaches your home carrying LIGHT",
+  "A small converter box (the ONT your provider installs) turns light into electrical signals",
+  "The router shares that connection; Wi-Fi carries it to your phone",
+  "So 'the router' is really 3–4 boxes doing different jobs — often in one case"]},
+ {t:"How a device joins the network",pts:[
+  "Every device gets a number — an IP address — automatically (DHCP)",
+  "Names like google.com get looked up in a phonebook (DNS)",
+  "The gateway is the door to the outside world",
+  "No number = no internet. (Remember the lonely 169.254…)"]}]},
+8:{ex:[
+ {t:"Security makes three promises (CIA)",pts:[
+  "Confidential — only the right eyes see it",
+  "Integrity — nobody changed it secretly",
+  "Available — it works when you need it",
+  "Every password, lock and backup protects one of these three"]},
+ {t:"The attacks you'll actually meet",pts:[
+  "Phishing — fake urgent messages fishing for your password (the fake bank SMS!)",
+  "Malware — harmful software, like the love letter",
+  "Social engineering — tricking PEOPLE instead of machines",
+  "Support staff are prime targets: we hold the password-reset keys"]}]},
+9:{ex:[
+ {t:"The cloud = someone else's computer",pts:[
+  "Your email and photos live in huge buildings far away (data centres)",
+  "You rent instead of own — like streaming vs buying DVDs",
+  "One real machine pretends to be many (virtual machines)",
+  "Snapshots let you break things and rewind — mistakes become free"]},
+ {t:"Your new religion: the 6 steps",pts:[
+  "1 — What exactly is wrong? What changed?",
+  "2 — Guess the cheapest likely cause · 3 — Test that guess",
+  "4 — Fix it · 5 — Check EVERYTHING works again",
+  "6 — Write it down. From today, every lab is graded on these steps"]}]},
+10:{ex:[
+ {t:"The gate, in plain words",pts:[
+  "30 questions · 45 minutes · 21 correct = pass",
+  "One retake allowed, a week later",
+  "Plus a hands-on demo: user, app, IP address, error log — narrated",
+  "Pass = Phase 2, and real hardware in your hands"]},
+ {t:"How to review like a pro",pts:[
+  "Take one practice test COLD → list every mistake",
+  "Study ONLY the mistakes — not everything again",
+  "A second test confirms the patch",
+  "Then sleep. A rested 85% brain beats an exhausted 95% one"]}]}
+};
+SESSIONS.forEach(s=>{const e=SIMPLE[s.n];if(e){if(e.title)s.title=e.title;if(e.q)s.q=e.q;if(e.ex)s.ex=e.ex;}});
+/* diagram corrections: CPU evolution belongs with the hardware deep-dive, not session 1 */
+SESSIONS.forEach(s=>{
+  if(s.n===1)s.vis=[];
+  if(s.n===11&&!s.vis.includes("cpuevo"))s.vis.push("cpuevo");
+});
+if(typeof module!=='undefined')module.exports=SESSIONS;
