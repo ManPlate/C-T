@@ -250,7 +250,7 @@ button{font:inherit;cursor:pointer}
  <span id="pos">S01 · 1/8</span>
  <div class="bar"><div class="fill" id="fill"></div></div>
  <span class="kbd">→ next · ← back · G sessions · N details · I instructor · F fullscreen · ✎ add media</span>
- <span class="phasechip" style="opacity:.55">BUILD v8</span>
+ <span class="phasechip" style="opacity:.55">BUILD v9</span>
 </div>
 <script src="slides-data.js"></script>
 <script src="diagrams.js"></script>
@@ -270,10 +270,10 @@ function buildDeck(){
     const base=[];
     const push=(t,extra)=>base.push({s:si,n:s.n,notes:s.notes,type:t,...(extra||{})});
     push('title');
-    push('hook',{reveals:s.hook.length+(s.facts.length?1:0)});
-    push('q');
     s.ex.forEach((e,i)=>push('ex',{i}));
     s.vis.forEach((v,vi)=>push('vis',{vi}));
+    push('hook',{reveals:s.hook.length+(s.facts.length?1:0)});
+    push('q');
     push('cmp');
     if(s.vid)push('vid');
     if(s.demo)push('demo');
